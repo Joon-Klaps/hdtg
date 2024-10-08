@@ -60,7 +60,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
 //         long flags,
 //         int info,
 //         long seed) {
-// 
+//
 //     if (static_cast<unsigned long>(flags) & zz::Flags::AVX) {
 //         std::cerr << "Factory: AVX" << std::endl;
 //         return zz::make_unique<zz::ZigZag<zz::DoubleAvxTypeInfo>>(
@@ -176,7 +176,7 @@ JNIEXPORT jint JNICALL Java_dr_evomodel_operators_NativeZigZag_operate(
 
     (void)obj;
 
-    //JniCallback callback(env, provider); 
+    //JniCallback callback(env, provider);
 
     jboolean isPositionCopy, isVelocityCopy, isActionCopy, isGradientCopy, isMomentumCopy;
 

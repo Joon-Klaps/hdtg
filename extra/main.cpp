@@ -3,6 +3,7 @@
 //
 
 #include <vector>
+#include <memory>
 
 #include "../src/AbstractZigZag.h"
 #include "../src/ZigZag.h"

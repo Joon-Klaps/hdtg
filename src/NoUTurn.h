@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <cmath>
+#include <memory>
 
 #define TBB_PREVIEW_GLOBAL_CONTROL 1
 
@@ -61,7 +62,7 @@ namespace nuts {
 
         std::vector<double> generateNextState(DblSpan initialPosition, DblSpan initialMomentum) {
 
-            
+
             const double initialJointDensity = zzEngine.getLogPDFnoDet(initialPosition, initialMomentum);
             double logSliceU = log(uniGenerator.getUniform()) + initialJointDensity;
 
@@ -89,7 +90,7 @@ namespace nuts {
                                      double initialJointDensity) {
             int direction = (uniGenerator.getUniform() < 0.5) ? -1 : 1;
             UniPtrTreeState nextTrajectoryTree = buildNextTree(
-                    trajectoryTree->getPosition(direction), 
+                    trajectoryTree->getPosition(direction),
                     trajectoryTree->getMomentum(direction),
                     trajectoryTree->getGradient(direction),
                     direction, logSliceU, height, stepSize, initialJointDensity);
@@ -106,20 +107,20 @@ namespace nuts {
                                   double logSliceU, int height, double stepSize, double initialJointDensity) {
             if (height == 0) {
                 return buildNextSingletonTree(position, momentum, gradient, direction, logSliceU, stepSize, initialJointDensity);
-            } 
-            
+            }
+
             UniPtrTreeState subtree = buildNextTree(
-                position, momentum, gradient, direction, logSliceU, height - 1, 
+                position, momentum, gradient, direction, logSliceU, height - 1,
                 stepSize, initialJointDensity
             );
-            
+
             if ((*subtree).flagContinue) {
 
                 UniPtrTreeState nextSubtree = buildNextTree(
-                    (*subtree).getPosition(direction), 
-                    (*subtree).getMomentum(direction), 
-                    (*subtree).getGradient(direction), 
-                    direction, logSliceU, height - 1, 
+                    (*subtree).getPosition(direction),
+                    (*subtree).getMomentum(direction),
+                    (*subtree).getGradient(direction),
+                    direction, logSliceU, height - 1,
                     stepSize, initialJointDensity
                 );
                 if ((*nextSubtree).flagContinue) {
@@ -128,7 +129,7 @@ namespace nuts {
                 } else {
                     (*subtree).flagContinue = false;
                 }
-                
+
             }
             return subtree;
         }
@@ -149,7 +150,7 @@ namespace nuts {
             DblSpan gradient{gradientVec};
 
             zzEngine.reversiblePositionMomentumUpdate(position, momentum, gradient, direction, stepSize);
-            
+
             double logJointProbAfter = zzEngine.getLogPDFnoDet(position, momentum);
 
             const int numNodes = (logSliceU <= logJointProbAfter ? 1 : 0);

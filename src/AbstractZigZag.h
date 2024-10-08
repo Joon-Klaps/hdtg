@@ -9,6 +9,7 @@
 //#define TCB_SPAN_NO_CONTRACT_CHECKING
 #include "span.h"
 #include "PrecisionColumn.h"
+#include <memory>
 
 //namespace std {
 //    template <typename T>
@@ -50,11 +51,11 @@ namespace zz {
                                DblSpan initialGradient,
                                DblSpan initialMomentum,
                                double time) = 0;
-        
+
         virtual double operate(DblSpan initialPosition,
                                DblSpan initialMomentum,
                                double time) = 0;
-        
+
         virtual double operateIrreversible(DblSpan initialPosition,
                                            DblSpan initialVelocity,
                                            double time) = 0;

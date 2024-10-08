@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <cmath>
+#include <memory>
 
 #define TBB_PREVIEW_GLOBAL_CONTROL 1
 
@@ -204,9 +205,9 @@ namespace zz {
                                       upperBounds);
             return operateImpl(dynamics, time);
         }
-        
-        double operateIrreversible(DblSpan position, 
-                                   DblSpan velocity, 
+
+        double operateIrreversible(DblSpan position,
+                                   DblSpan velocity,
                                    double time) {
             std::unique_ptr<Eigen::VectorXd> aPtr = getAction(velocity);
             DblSpan action(*aPtr);
@@ -291,7 +292,7 @@ namespace zz {
 
             return 0.0;
         }
-        
+
         template<typename T>
         double operateIrreversibleImpl(Dynamics<T> &dynamics, double time) {
 
@@ -370,7 +371,7 @@ namespace zz {
             for (int i = 0; i < dimension; ++i) {
                 unifRv[i] = distribution(generator);
             }
-            
+
             auto task = [&](const size_t begin, const size_t end) -> MinTravelInfo {
 
                 const auto length = end - begin;
@@ -515,7 +516,7 @@ namespace zz {
 
             return horizontal_min(result);
         };
-        
+
         template<typename S, int SimdSize, typename R, typename I, typename Int>
         MinTravelInfo vectorized_transform_irreversible(
             Int i, const Int end, const Dynamics<R> &dynamics, I result, double* unifRv) {
@@ -526,7 +527,7 @@ namespace zz {
             const auto *gradient = dynamics.gradient;
             const auto *lowerBounds = dynamics.lowerBounds;
             const auto *upperBounds = dynamics.upperBounds;
-            
+
             for (; i < end; i += SimdSize) {
 
                 const auto boundaryTimeLower = findBoundaryTime(
@@ -548,8 +549,8 @@ namespace zz {
                         - SimdHelper<S, R>::get(velocity + i) * SimdHelper<S, R>::get(gradient + i),
                         SimdHelper<S, R>::get(velocity + i) * SimdHelper<S, R>::get(action + i)
                 );
-                const auto c = 
-                    - SimdHelper<S, R>::get(velocity + i) * log(SimdHelper<S, R>::get(unifRv + i)) 
+                const auto c =
+                    - SimdHelper<S, R>::get(velocity + i) * log(SimdHelper<S, R>::get(unifRv + i))
                     - firstPosTime * SimdHelper<S, R>::get(gradient + i)
                     + firstPosTime * firstPosTime * SimdHelper<S, R>::get(action + i) / 2;
                 const auto gradientTime = minimumPositiveRootWithConstraint(
@@ -643,7 +644,7 @@ namespace zz {
                                   });
             }
         }
-        
+
         template<typename R>
         BounceState doBounce(BounceState initialBounceState, MinTravelInfo firstBounce, Dynamics<R> &dynamics) {
 
@@ -681,7 +682,7 @@ namespace zz {
 
             return finalBounceState;
         }
-        
+
         template<typename R>
         BounceState doBounceIrreversible(BounceState initialBounceState, MinTravelInfo firstBounce, Dynamics<R> &dynamics) {
 
@@ -921,7 +922,7 @@ namespace zz {
                 result.type = select(mask, D4Index(type), result.type);
             }
         }
-#endif        
+#endif
 
         static inline MinTravelInfo horizontal_min(DoubleSseMinTravelInfo vector) {
             return (vector.time[0] < vector.time[1]) ?
@@ -931,22 +932,22 @@ namespace zz {
 
 #ifdef USE_AVX
         static inline MinTravelInfo horizontal_min(DoubleAvxMinTravelInfo vector) {
-        
+
             auto const firstHalf = (vector.time[0] < vector.time[1]) ?
                                    MinTravelInfo(static_cast<int>(vector.type[0]), static_cast<int>(vector.index[0]),
                                                  vector.time[0]) :
                                    MinTravelInfo(static_cast<int>(vector.type[1]), static_cast<int>(vector.index[1]),
                                                  vector.time[1]);
-        
+
             auto const secondHalf = (vector.time[2] < vector.time[3]) ?
                                     MinTravelInfo(static_cast<int>(vector.type[2]), static_cast<int>(vector.index[2]),
                                                   vector.time[2]) :
                                     MinTravelInfo(static_cast<int>(vector.type[3]), static_cast<int>(vector.index[3]),
                                                   vector.time[3]);
-        
+
             return (firstHalf.time < secondHalf.time) ? firstHalf : secondHalf;
         }
-#endif        
+#endif
 
         template<typename T>
         static inline T findBoundaryTime(const T position,
@@ -987,25 +988,25 @@ namespace zz {
             const auto root = select(root1 < root2, root1, root2);
             return select(discriminant < T(0.0), infinity<T>(), root);
         }
-        
+
         template<typename T>
         static inline T firstPositiveTime(const T intercept, const T slope) {
             auto time = select(intercept > T(0.0), T(0.0), - intercept / slope);
             time = select(time >= T(0.0), time, infinity<T>());
             return time;
         }
-    
+
         template<typename T>
         static inline T minimumPositiveRootWithConstraint(const T a, const T b, const T c, const T lowerBd) {
             const auto discriminant = b * b - 4 * a * c;
             const auto sqrtDiscriminant = select(c == T(0.0), b, sqrt(fabs(discriminant)));
-    
+
             auto root1 = (-b - sqrtDiscriminant) / (2 * a);
             auto root2 = (-b + sqrtDiscriminant) / (2 * a);
-    
+
             root1 = select(root1 > lowerBd, root1, infinity<T>());
             root2 = select(root2 > lowerBd, root2, infinity<T>());
-    
+
             const auto root = select(root1 < root2, root1, root2);
             return select(discriminant < T(0.0), infinity<T>(), root);
         }
@@ -1081,7 +1082,7 @@ namespace zz {
 #else
             return zz::make_unique<zz::ZigZag<zz::DoubleSseTypeInfo>>(
               dimension, rawMask, rawLowerBounds, rawUpperBounds, flags, info, seed);
-#endif            
+#endif
         } else if (static_cast<unsigned long>(flags) & zz::Flags::SSE) {
 //            std::cerr << "Factory: SSE" << std::endl;
             return zz::make_unique<zz::ZigZag<zz::DoubleSseTypeInfo>>(
