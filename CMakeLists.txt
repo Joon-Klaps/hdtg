@@ -11,6 +11,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g -msse4.2 -mfma -mavx")
 
 find_package(Java REQUIRED)
 find_package(JNI REQUIRED)
+find_package(Eigen3 REQUIRED)  # Add this line to find Eigen
 include(UseJava)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
@@ -34,7 +35,7 @@ ELSE()
     SET(TBB_LIBRARIES tbb)
     #INCLUDE("${CMAKE_MODULE_PATH}/build_tbb.cmake")
 ENDIF()
-INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})  # Add Eigen include directories
 MESSAGE(STATUS "TBB directory: ${TBB_INCLUDE_DIRS}")
 
 option(USE_SYSTEM_XSIMD "Use system XSIMD" OFF)
@@ -45,7 +46,6 @@ else()
 endif()
 message(STATUS "xsimd directory: ${xsimd_INCLUDE_DIRS}")
 include_directories(${xsimd_INCLUDE_DIRS})
-
 
 add_library (zig_zag SHARED
         src/NativeZigZag.cpp
@@ -65,10 +65,3 @@ add_executable(main
 
 target_link_libraries(main
         zig_zag)
-
-#add_jar(${PROJECT_NAME}
-#        DemoFuncs.java
-#        Main.java
-#        Name.java
-#    ENTRY_POINT Main
-#)
